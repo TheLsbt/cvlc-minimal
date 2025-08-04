@@ -68,7 +68,7 @@ jobs:
           fi
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: minimal-cvlc-${{ matrix.os }}
           path: vlc/minimal-cvlc-*   
