@@ -1,0 +1,72 @@
+name: Build CVLC
+
+on:
+  schedule:
+    - cron: 0 0 * * * 
+
+jobs:
+  build-cvlc:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup build dependicies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git build-essential pkg-config autoconf automake libtool \
+            libopus-dev libvorbis-dev libtheora-dev libvpx-dev \
+            liba52-0.7.4-dev libmad0-dev libogg-dev libflac-dev
+      
+      - name: Clone VLC source
+        run: |
+          git clone  --depth=1 https://code.videolan.org/videolan/vlc.git
+          cd vlc
+          
+      - name: Bootstrap & configure
+        working-directory: vlc
+        run: |
+          ./bootstrap
+          ./configure \
+            --disable-gui \
+            --disable-skins2 \
+            --disable-xcb \
+            --disable-qt \
+            --disable-lua \
+            --disable-dbus \
+            --disable-sdl \
+            --disable-jack \
+            --disable-mad \
+            --disable-a52 \
+            --enable-libopus \
+            --enable-libvorbis \
+            --enable-libtheora \
+            --enable-libvpx \
+            --prefix="$PWD/build"
+
+      - name: Build & install cvlc
+        working-directory: vlc
+        run: |
+          make -C vlc/cvlc -j$(nproc || echo 2)
+          make install -C vlc/cvlc
+
+      - name: Package artifact
+        working-directory: vlc/build
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            zip -r ../minimal-cvlc-windows-$(date +%Y%m%d).zip bin lib plugins
+          else
+            tar czf ../minimal-cvlc-${{ matrix.os }}-$(date +%Y%m%d).tar.gz bin lib plugins
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: minimal-cvlc-${{ matrix.os }}
+          path: vlc/minimal-cvlc-*   
