@@ -75,7 +75,7 @@ jobs:
           7z a cvlc-windows.zip inst/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cvlc-windows
           path: cvlc-windows.zip
