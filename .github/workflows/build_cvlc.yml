@@ -12,7 +12,7 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          update: false
+          update: true
 
       - name: Update MSYS2 base system
         shell: msys2 {0}
