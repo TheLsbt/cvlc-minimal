@@ -20,22 +20,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libopus-dev \
-            libvorbis-dev \
-            libtheora-dev \
-            libvpx-dev \
-            liba52-0.7.4-dev \
-            libmad0-dev \
-            libogg-dev \
-            libflac-dev \
-            git \
-            build-essential \
-            pkg-config \
-            autoconf \
-            automake \
-            libtool \
-            autopoint \
-            gettext
+          libavformat-dev \
+          libswscale-dev \
+          libavfilter-dev \
+          libavresample-dev
+          libopus-dev \
+          libvorbis-dev \
+          libtheora-dev \
+          libvpx-dev \
+          liba52-0.7.4-dev \
+          libmad0-dev \
+          libogg-dev \
+          libflac-dev \
+          git \
+          build-essential \
+          pkg-config \
+          autoconf \
+          automake \
+          libtool \
+          autopoint \
+          gettext
 
       # 4. Clone VLC source
       - name: Clone VLC
