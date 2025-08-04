@@ -6,31 +6,32 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
-
-      - name: Check out repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          update: true
-          install: >
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-pkg-config
-            git
-            autoconf
-            automake
-            libtool
-            make
+          update: false
+
+      - name: Update MSYS2 base system
+        shell: msys2 {0}
+        run: |
+          pacman -Syuu --noconfirm
 
       - name: Install VLC build dependencies
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -S \
-            mingw-w64-x86_64-liblua \
-            mingw-w64-x86_64-pulse \
+          pacman --noconfirm -S --needed \
+            mingw-w64-x86_64-toolchain \
+            mingw-w64-x86_64-pkg-config \
+            git \
+            autoconf \
+            automake \
+            libtool \
+            make \
+            mingw-w64-x86_64-lua \
+            mingw-w64-x86_64-pulseaudio \
             mingw-w64-x86_64-ffmpeg
 
       - name: Build minimal CVLC
