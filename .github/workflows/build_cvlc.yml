@@ -13,7 +13,7 @@ jobs:
     steps:
       # 2. Check out repository (if you have patches or scripts here)
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 3. Install build dependencies
       - name: Install build tools
@@ -67,7 +67,7 @@ jobs:
 
       # 8. Upload artifact
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: minimal-cvlc
           path: vlc/minimal-cvlc-*.tar.gz
