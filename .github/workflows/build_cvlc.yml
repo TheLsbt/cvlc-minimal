@@ -1,90 +1,81 @@
-name: Build Minimal cvlc
+name: Build Minimal CVLC for Windows
 
-# 1. Trigger daily at midnight UTC (adjust cron as needed)
 on:
-  schedule:
-    - cron: "0 0 * * *"
-  
   workflow_dispatch:
 
 jobs:
-  build-cvlc:
-    runs-on: ubuntu-latest
+  build-windows:
+    runs-on: windows-latest
+
     steps:
-      # 2. Check out repository (if you have patches or scripts here)
-      - name: Checkout repo
-        uses: actions/checkout@v4
 
-      # 3. Install build dependencies
-      - name: Set up build dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-          libavformat-dev \
-          libswscale-dev \
-          libavfilter-dev \
-          libavresample-dev
-          libopus-dev \
-          libvorbis-dev \
-          libtheora-dev \
-          libvpx-dev \
-          liba52-0.7.4-dev \
-          libmad0-dev \
-          libogg-dev \
-          libflac-dev \
-          git \
-          build-essential \
-          pkg-config \
-          autoconf \
-          automake \
-          libtool \
-          autopoint \
-          gettext
+      - name: Check out repo
+        uses: actions/checkout@v3
 
-      # 4. Clone VLC source
-      - name: Clone VLC
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-pkg-config
+            git
+            autoconf
+            automake
+            libtool
+            make
+
+      - name: Install VLC build dependencies
+        shell: msys2 {0}
         run: |
-          git clone --depth=1 https://code.videolan.org/videolan/vlc.git
+          pacman --noconfirm -S \
+            mingw-w64-x86_64-liblua \
+            mingw-w64-x86_64-pulse \
+            mingw-w64-x86_64-ffmpeg
+
+      - name: Build minimal CVLC
+        shell: msys2 {0}
+        run: |
+          set -e
+
+          # 1. Clone VLC source
+          git clone --depth 1 https://code.videolan.org/videolan/vlc.git
           cd vlc
 
-      # 5. Bootstrap & configure minimal build
-      - name: Configure headless cvlc
-        working-directory: vlc
-        run: |
+          # 2. Bootstrap & configure audio-only + HTTP/socket
           ./bootstrap
           ./configure \
-            --disable-gui \
+            --host=x86_64-w64-mingw32 \
+            --disable-video \
             --disable-skins2 \
-            --disable-xcb \
-            --disable-qt \
             --disable-lua \
-            --disable-mad \
+            --disable-x11 \
             --disable-dbus \
             --disable-sdl \
-            --disable-jack \
-            --disable-a52 \
-            --disable-mjpeg \
-            --disable-microdns \
-            --enable-libopus \
-            --enable-libvorbis \
-            --prefix="$PWD/build"
+            --disable-chromaprint \
+            --disable-mad \
+            --disable-flac \
+            --disable-theora \
+            --enable-decoder=mp3,opus,vorbis \
+            --enable-avcodec \
+            --enable-avformat \
+            --enable-swresample \
+            --enable-pulse \
+            --enable-sout \
+            --enable-http \
+            --enable-socket \
+            --prefix="$PWD/../inst"
 
-      # 6. Build only cvlc
-      - name: Build cvlc
-        working-directory: vlc
-        run: |
-          make -C vlc/cvlc -j$(nproc)
-          make install -C vlc/cvlc
+          # 3. Compile & install
+          make -j "$(nproc)"
+          make install
 
-      # 7. Package the result
-      - name: Package minimal cvlc
-        run: |
-          cd vlc/build
-          tar czf ../minimal-cvlc-$(date +%Y%m%d).tar.gz bin/cvlc lib/libvlc* plugins/
+          # 4. Package binary tree
+          cd ..
+          7z a cvlc-windows.zip inst/
 
-      # 8. Upload artifact
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: minimal-cvlc
-          path: vlc/minimal-cvlc-*.tar.gz
+          name: cvlc-windows
+          path: cvlc-windows.zip
