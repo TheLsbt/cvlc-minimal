@@ -20,6 +20,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            libopus-dev \
+            libvorbis-dev \
+            libtheora-dev \
+            libvpx-dev \
+            liba52-0.7.4-dev \
+            libmad0-dev \
+            libogg-dev \
+            libflac-dev \
             git \
             build-essential \
             pkg-config \
