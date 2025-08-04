@@ -13,6 +13,17 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
+          install: >
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-pkg-config
+            git
+            autoconf
+            automake
+            libtool
+            make
+            flex
+            bison
+          
 
       - name: Update MSYS2 base system
         shell: msys2 {0}
